@@ -42,6 +42,7 @@ export interface Project {
   timelineResult?: Record<string, unknown>;
   permitChecklist?: PermitChecklistItem[];
   documents?: DocumentItem[];
+  documents_tracked?: Record<string, unknown>; // For document tracker tool
 }
 
 interface ProjectState {

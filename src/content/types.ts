@@ -4,7 +4,8 @@ export interface Lesson {
   order: number;
   title: string;
   subtitle: string;
-  duration: string; // e.g., "5 min read"
+  duration?: string; // e.g., "5 min read" (legacy)
+  estimatedMinutes?: number; // newer format
   content: LessonContent[];
   keyTakeaways: string[];
   georgiaNote?: string;
@@ -21,7 +22,7 @@ export interface LessonContent {
 }
 
 export interface QuizQuestion {
-  id: string;
+  id?: string; // optional for backwards compatibility
   question: string;
   options: string[];
   correctIndex: number;
