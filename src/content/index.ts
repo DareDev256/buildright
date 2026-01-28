@@ -1,17 +1,12 @@
 import { Module, Lesson } from "./types";
 import { module1 } from "./module1";
 import { module2 } from "./module2";
+import { module3 } from "./module3";
 
 export const modules: Module[] = [
   module1,
   module2,
-  {
-    id: "3",
-    title: "Funding Your Build",
-    description: "Construction loans, owner-builder financing, budgeting",
-    totalLessons: 7,
-    lessons: [],
-  },
+  module3,
   {
     id: "4",
     title: "Planning & Design",
