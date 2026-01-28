@@ -5,6 +5,7 @@ import { module3 } from "./module3";
 import { module4 } from "./module4";
 import { module5 } from "./module5";
 import { module6 } from "./module6";
+import { module7 } from "./module7";
 
 export const modules: Module[] = [
   module1,
@@ -13,13 +14,7 @@ export const modules: Module[] = [
   module4,
   module5,
   module6,
-  {
-    id: "7",
-    title: "Completion & Beyond",
-    description: "Final inspections, CO, punch lists, warranties",
-    totalLessons: 5,
-    lessons: [],
-  },
+  module7,
 ];
 
 export function getModule(moduleId: string): Module | undefined {
