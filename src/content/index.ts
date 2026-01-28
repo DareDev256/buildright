@@ -1,16 +1,10 @@
 import { Module, Lesson } from "./types";
 import { module1 } from "./module1";
+import { module2 } from "./module2";
 
 export const modules: Module[] = [
   module1,
-  // Placeholder modules - content to be added
-  {
-    id: "2",
-    title: "Land Acquisition",
-    description: "Finding land, zoning, due diligence, Georgia land laws",
-    totalLessons: 6,
-    lessons: [],
-  },
+  module2,
   {
     id: "3",
     title: "Funding Your Build",
