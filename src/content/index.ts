@@ -2,18 +2,13 @@ import { Module, Lesson } from "./types";
 import { module1 } from "./module1";
 import { module2 } from "./module2";
 import { module3 } from "./module3";
+import { module4 } from "./module4";
 
 export const modules: Module[] = [
   module1,
   module2,
   module3,
-  {
-    id: "4",
-    title: "Planning & Design",
-    description: "Architects, blueprints, site planning, cost estimation",
-    totalLessons: 6,
-    lessons: [],
-  },
+  module4,
   {
     id: "5",
     title: "Permits & Approvals",
