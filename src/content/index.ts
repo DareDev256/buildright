@@ -4,6 +4,7 @@ import { module2 } from "./module2";
 import { module3 } from "./module3";
 import { module4 } from "./module4";
 import { module5 } from "./module5";
+import { module6 } from "./module6";
 
 export const modules: Module[] = [
   module1,
@@ -11,13 +12,7 @@ export const modules: Module[] = [
   module3,
   module4,
   module5,
-  {
-    id: "6",
-    title: "The Build Process",
-    description: "Phase-by-phase: site prep to finishes, managing subs",
-    totalLessons: 12,
-    lessons: [],
-  },
+  module6,
   {
     id: "7",
     title: "Completion & Beyond",
