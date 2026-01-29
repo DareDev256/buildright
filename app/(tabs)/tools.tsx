@@ -4,8 +4,8 @@ import { useRouter } from "expo-router";
 import {
   Calculator,
   Clock,
-  FileCheck,
-  FolderCheck,
+  ClipboardCheck,
+  FileText,
   HelpCircle,
   ChevronRight,
 } from "lucide-react-native";
@@ -13,44 +13,53 @@ import {
 const tools = [
   {
     id: "budget-calculator",
-    title: "Build Budget Calculator",
-    description: "Estimate total costs based on size, finish level, and location",
+    title: "Budget Calculator",
+    description: "Estimate your total construction cost based on size, finish level, and Georgia county",
     icon: Calculator,
-    color: "#3b82f6",
-    bgColor: "#eff6ff",
+    color: "#059669",
+    bgColor: "bg-emerald-50",
+    iconBg: "bg-emerald-100",
+    borderColor: "border-emerald-100",
   },
   {
     id: "timeline-estimator",
     title: "Timeline Estimator",
-    description: "Get a realistic phase-by-phase build schedule",
+    description: "Plan your build timeline with phase-by-phase breakdown and seasonal considerations",
     icon: Clock,
-    color: "#8b5cf6",
-    bgColor: "#f5f3ff",
+    color: "#d97706",
+    bgColor: "bg-amber-50",
+    iconBg: "bg-amber-100",
+    borderColor: "border-amber-100",
   },
   {
     id: "permit-checklist",
     title: "Permit Checklist",
-    description: "Georgia county-specific permit requirements and links",
-    icon: FileCheck,
-    color: "#ef4444",
-    bgColor: "#fef2f2",
-    hasGeorgiaBadge: true,
+    description: "Track required permits, inspections, and approvals for your Georgia county",
+    icon: ClipboardCheck,
+    color: "#7c3aed",
+    bgColor: "bg-violet-50",
+    iconBg: "bg-violet-100",
+    borderColor: "border-violet-100",
   },
   {
     id: "document-tracker",
     title: "Document Tracker",
-    description: "Track all required documents for your build",
-    icon: FolderCheck,
-    color: "#10b981",
-    bgColor: "#ecfdf5",
+    description: "Organize and track all documents needed for your construction loan",
+    icon: FileText,
+    color: "#2563eb",
+    bgColor: "bg-blue-50",
+    iconBg: "bg-blue-100",
+    borderColor: "border-blue-100",
   },
   {
     id: "funding-quiz",
-    title: "Funding Readiness Quiz",
-    description: "Check if you're ready to approach lenders",
+    title: "Funding Readiness",
+    description: "Assess your financial readiness with a 10-question evaluation and personalized score",
     icon: HelpCircle,
-    color: "#f59e0b",
-    bgColor: "#fffbeb",
+    color: "#db2777",
+    bgColor: "bg-pink-50",
+    iconBg: "bg-pink-100",
+    borderColor: "border-pink-100",
   },
 ];
 
@@ -59,76 +68,64 @@ export default function ToolsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
-      <ScrollView className="flex-1 px-4 pt-4">
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View className="mb-6">
-          <Text className="text-2xl font-bold text-gray-900">Tools</Text>
-          <Text className="text-gray-600 mt-1">
-            Interactive calculators and checklists for your build
+        <View className="px-5 pt-4 pb-2">
+          <Text className="text-3xl font-extrabold text-gray-900">Tools</Text>
+          <Text className="text-gray-500 mt-1">
+            Interactive calculators and checklists
           </Text>
         </View>
 
-        {/* Tools Grid */}
-        <View className="gap-3">
-          {tools.map((tool) => {
-            const IconComponent = tool.icon;
-            return (
-              <TouchableOpacity
-                key={tool.id}
-                onPress={() => router.push(`/tools/${tool.id}`)}
-                className="bg-white rounded-xl border border-gray-200 overflow-hidden"
-              >
-                <View className="flex-row items-center p-4">
-                  <View
-                    className="w-12 h-12 rounded-xl items-center justify-center mr-4"
-                    style={{ backgroundColor: tool.bgColor }}
-                  >
-                    <IconComponent size={24} color={tool.color} />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-gray-900 font-semibold text-base">
-                      {tool.title}
-                    </Text>
-                    <Text className="text-gray-500 text-sm mt-0.5">
-                      {tool.description}
-                    </Text>
-                  </View>
-                  <ChevronRight size={20} color="#9ca3af" />
-                </View>
-                {tool.hasGeorgiaBadge && (
-                  <View className="bg-red-50 px-4 py-2 border-t border-red-100">
-                    <Text className="text-red-700 text-xs font-medium">
-                      Georgia-specific data
-                    </Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {/* Saved Projects Section */}
-        <View className="mt-8 mb-6">
-          <Text className="text-lg font-semibold text-gray-900 mb-3">
-            Your Projects
-          </Text>
-          <View className="bg-white rounded-xl border border-gray-200 p-6 items-center">
-            <FolderCheck size={40} color="#d1d5db" />
-            <Text className="text-gray-500 mt-3 text-center">
-              No saved projects yet
-            </Text>
-            <Text className="text-gray-400 text-sm mt-1 text-center">
-              Use the tools above to start planning your build
+        {/* Georgia Banner */}
+        <View className="mx-5 mt-2 mb-5">
+          <View className="bg-red-50 border border-red-100 rounded-2xl px-4 py-3 flex-row items-center">
+            <View className="bg-red-600 rounded-xl w-9 h-9 items-center justify-center mr-3">
+              <Text className="text-white text-xs font-extrabold">GA</Text>
+            </View>
+            <Text className="text-red-800 flex-1 text-sm font-medium">
+              All tools calibrated for Georgia building
             </Text>
           </View>
         </View>
 
-        {/* Disclaimer */}
-        <View className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-8">
-          <Text className="text-amber-800 text-xs">
-            Estimates are for planning purposes only. Actual costs and timelines may vary.
-            Always get professional quotes and verify requirements with local authorities.
-          </Text>
+        {/* Tool Cards */}
+        <View className="px-5 gap-4 mb-8">
+          {tools.map((tool) => {
+            const Icon = tool.icon;
+            return (
+              <TouchableOpacity
+                key={tool.id}
+                onPress={() => router.push(`/tools/${tool.id}` as any)}
+                activeOpacity={0.8}
+                className={`bg-white rounded-3xl border ${tool.borderColor} overflow-hidden`}
+              >
+                <View className="p-5">
+                  <View className="flex-row items-start">
+                    {/* Icon */}
+                    <View className={`w-14 h-14 rounded-2xl items-center justify-center mr-4 ${tool.iconBg}`}>
+                      <Icon size={24} color={tool.color} />
+                    </View>
+
+                    {/* Content */}
+                    <View className="flex-1">
+                      <Text className="text-lg font-bold text-gray-900">
+                        {tool.title}
+                      </Text>
+                      <Text className="text-sm text-gray-500 mt-1 leading-5">
+                        {tool.description}
+                      </Text>
+                    </View>
+
+                    {/* Arrow */}
+                    <View className="ml-2 mt-1">
+                      <ChevronRight size={20} color="#d1d5db" />
+                    </View>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </ScrollView>
     </SafeAreaView>

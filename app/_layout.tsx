@@ -9,7 +9,6 @@ export default function RootLayout() {
       <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="onboarding" />
         <Stack.Screen name="learn/[moduleId]" />
         <Stack.Screen name="lesson/[lessonId]" />
       </Stack>
