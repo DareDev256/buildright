@@ -1,34 +1,12 @@
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import {
-  ChevronRight,
-  Lock,
-  CheckCircle2,
-  BookOpen,
-} from "lucide-react-native";
+import { Lock, ChevronRight } from "lucide-react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { modules } from "../../src/content";
 import { useProgressStore } from "../../src/stores/useProgressStore";
-
-const moduleEmojis: Record<string, string> = {
-  "1": "🏗️",
-  "2": "🏡",
-  "3": "💰",
-  "4": "📐",
-  "5": "📋",
-  "6": "🔨",
-  "7": "🎉",
-};
-
-const moduleColors: Record<string, { bg: string; border: string; light: string; text: string }> = {
-  "1": { bg: "bg-blue-600", border: "border-blue-100", light: "bg-blue-50", text: "text-blue-600" },
-  "2": { bg: "bg-emerald-600", border: "border-emerald-100", light: "bg-emerald-50", text: "text-emerald-600" },
-  "3": { bg: "bg-amber-600", border: "border-amber-100", light: "bg-amber-50", text: "text-amber-600" },
-  "4": { bg: "bg-violet-600", border: "border-violet-100", light: "bg-violet-50", text: "text-violet-600" },
-  "5": { bg: "bg-rose-600", border: "border-rose-100", light: "bg-rose-50", text: "text-rose-600" },
-  "6": { bg: "bg-orange-600", border: "border-orange-100", light: "bg-orange-50", text: "text-orange-600" },
-  "7": { bg: "bg-teal-600", border: "border-teal-100", light: "bg-teal-50", text: "text-teal-600" },
-};
+import AnimatedPressable from "../../src/components/AnimatedPressable";
+import { WARM_BG, COLORS, MODULE_THEMES, card3D } from "../../src/theme";
 
 export default function LearnScreen() {
   const router = useRouter();
@@ -36,135 +14,329 @@ export default function LearnScreen() {
 
   const totalLessons = modules.reduce((sum, m) => sum + m.lessons.length, 0);
   const totalCompleted = Object.values(completedLessons).flat().length;
+  const overallPct =
+    totalLessons > 0 ? Math.round((totalCompleted / totalLessons) * 100) : 0;
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: WARM_BG }}>
+      <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View className="px-5 pt-4 pb-2">
-          <Text className="text-3xl font-extrabold text-gray-900">Learn</Text>
-          <Text className="text-gray-500 mt-1">
+          <Text
+            style={{ fontSize: 30, fontWeight: "800", color: COLORS.eel }}
+          >
+            📚 Learn
+          </Text>
+          <Text
+            style={{
+              color: COLORS.hare,
+              fontSize: 14,
+              fontWeight: "600",
+              marginTop: 4,
+            }}
+          >
             {totalCompleted} of {totalLessons} lessons completed
           </Text>
         </View>
 
-        {/* Overall progress bar */}
+        {/* Overall progress — 3D white card */}
         <View className="mx-5 mt-2 mb-5">
-          <View className="bg-gray-200 rounded-full h-2.5">
+          <View
+            style={{
+              ...card3D(COLORS.snow.face, COLORS.snow.bottom, 14),
+              padding: 14,
+            }}
+          >
+            <View className="flex-row items-center justify-between mb-2">
+              <Text
+                style={{
+                  color: COLORS.hare,
+                  fontWeight: "700",
+                  fontSize: 12,
+                }}
+              >
+                OVERALL PROGRESS
+              </Text>
+              <Text
+                style={{
+                  color: COLORS.macawBlue.face,
+                  fontWeight: "800",
+                  fontSize: 14,
+                }}
+              >
+                {overallPct}%
+              </Text>
+            </View>
             <View
-              className="bg-blue-600 rounded-full h-2.5"
               style={{
-                width: `${totalLessons > 0 ? (totalCompleted / totalLessons) * 100 : 0}%`,
+                height: 10,
+                borderRadius: 5,
+                backgroundColor: "#E5E5E5",
               }}
-            />
+            >
+              <View
+                style={{
+                  width: `${overallPct}%`,
+                  height: 10,
+                  borderRadius: 5,
+                  backgroundColor: COLORS.macawBlue.face,
+                }}
+              />
+            </View>
           </View>
         </View>
 
         {/* Module Cards */}
-        <View className="px-5 gap-4 mb-8">
-          {modules.map((module) => {
+        <View className="px-5 mb-8" style={{ gap: 14 }}>
+          {modules.map((module, index) => {
+            const theme = MODULE_THEMES[module.id] || MODULE_THEMES["1"];
             const moduleLessons = completedLessons[module.id] || [];
             const lessonCount = module.lessons.length;
             const completedCount = moduleLessons.length;
-            const isComplete = completedCount >= lessonCount && lessonCount > 0;
+            const isComplete =
+              completedCount >= lessonCount && lessonCount > 0;
             const isInProgress = completedCount > 0 && !isComplete;
             const hasLessons = lessonCount > 0;
-            const progress = lessonCount > 0 ? (completedCount / lessonCount) * 100 : 0;
-            const colors = moduleColors[module.id] || moduleColors["1"];
+            const progress =
+              lessonCount > 0 ? (completedCount / lessonCount) * 100 : 0;
 
             return (
-              <TouchableOpacity
+              <Animated.View
                 key={module.id}
-                onPress={() => hasLessons ? router.push(`/learn/${module.id}` as any) : null}
-                activeOpacity={hasLessons ? 0.8 : 1}
-                className={`bg-white rounded-3xl border ${hasLessons ? colors.border : "border-gray-100"} overflow-hidden`}
+                entering={FadeInDown.delay(index * 80)
+                  .duration(400)
+                  .springify()
+                  .damping(16)}
               >
-                <View className="p-5">
-                  <View className="flex-row items-start">
-                    {/* Emoji circle */}
+                <AnimatedPressable
+                  onPress={() =>
+                    hasLessons
+                      ? router.push(`/learn/${module.id}` as any)
+                      : null
+                  }
+                  disabled={!hasLessons}
+                  haptic={hasLessons}
+                >
+                  <View
+                    style={{
+                      ...card3D(COLORS.snow.face, COLORS.snow.bottom, 20),
+                      overflow: "hidden",
+                      opacity: hasLessons ? 1 : 0.6,
+                    }}
+                  >
+                    {/* Colored top accent bar */}
                     <View
-                      className={`w-14 h-14 rounded-2xl items-center justify-center mr-4 ${
-                        isComplete
-                          ? "bg-green-100"
-                          : hasLessons
-                          ? colors.light
-                          : "bg-gray-50"
-                      }`}
-                    >
-                      {isComplete ? (
-                        <CheckCircle2 size={28} color="#22c55e" />
-                      ) : (
-                        <Text className="text-2xl">{moduleEmojis[module.id] || "📚"}</Text>
-                      )}
-                    </View>
+                      style={{
+                        height: 5,
+                        backgroundColor: hasLessons
+                          ? theme.color.face
+                          : "#E5E5E5",
+                      }}
+                    />
 
-                    {/* Content */}
-                    <View className="flex-1">
-                      <View className="flex-row items-center">
-                        <Text className={`text-xs font-bold ${hasLessons ? colors.text : "text-gray-300"} uppercase tracking-wide`}>
-                          Module {module.id}
-                        </Text>
-                        {isComplete && (
-                          <View className="bg-green-100 rounded-full px-2 py-0.5 ml-2">
-                            <Text className="text-green-700 text-xs font-bold">Complete</Text>
+                    <View style={{ padding: 16 }}>
+                      <View className="flex-row items-start">
+                        {/* Big emoji circle */}
+                        <View
+                          style={{
+                            width: 56,
+                            height: 56,
+                            borderRadius: 28,
+                            backgroundColor: isComplete
+                              ? COLORS.featherGreen.face
+                              : hasLessons
+                              ? `${theme.color.face}18`
+                              : "#F0F0F0",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            marginRight: 14,
+                            ...(isComplete
+                              ? {
+                                  borderBottomWidth: 3,
+                                  borderBottomColor:
+                                    COLORS.featherGreen.bottom,
+                                }
+                              : hasLessons
+                              ? {
+                                  borderBottomWidth: 3,
+                                  borderBottomColor: `${theme.color.face}30`,
+                                }
+                              : {}),
+                          }}
+                        >
+                          {isComplete ? (
+                            <Text style={{ fontSize: 26 }}>⭐</Text>
+                          ) : (
+                            <Text
+                              style={{
+                                fontSize: 26,
+                                opacity: hasLessons ? 1 : 0.4,
+                              }}
+                            >
+                              {theme.emoji}
+                            </Text>
+                          )}
+                        </View>
+
+                        {/* Content */}
+                        <View className="flex-1">
+                          <View className="flex-row items-center">
+                            <Text
+                              style={{
+                                fontSize: 11,
+                                fontWeight: "800",
+                                color: hasLessons
+                                  ? theme.color.face
+                                  : "#D0D0D0",
+                                letterSpacing: 0.5,
+                              }}
+                            >
+                              MODULE {module.id}
+                            </Text>
+                            {isComplete && (
+                              <View
+                                style={{
+                                  ...card3D(
+                                    COLORS.beeYellow.face,
+                                    COLORS.beeYellow.bottom,
+                                    8
+                                  ),
+                                  marginLeft: 8,
+                                  paddingHorizontal: 8,
+                                  paddingVertical: 2,
+                                }}
+                              >
+                                <Text
+                                  style={{
+                                    color: "white",
+                                    fontSize: 9,
+                                    fontWeight: "800",
+                                  }}
+                                >
+                                  COMPLETE
+                                </Text>
+                              </View>
+                            )}
+                            {isInProgress && (
+                              <View
+                                style={{
+                                  ...card3D(
+                                    COLORS.macawBlue.face,
+                                    COLORS.macawBlue.bottom,
+                                    8
+                                  ),
+                                  marginLeft: 8,
+                                  paddingHorizontal: 8,
+                                  paddingVertical: 2,
+                                }}
+                              >
+                                <Text
+                                  style={{
+                                    color: "white",
+                                    fontSize: 9,
+                                    fontWeight: "800",
+                                  }}
+                                >
+                                  IN PROGRESS
+                                </Text>
+                              </View>
+                            )}
                           </View>
-                        )}
-                        {isInProgress && (
-                          <View className="bg-blue-100 rounded-full px-2 py-0.5 ml-2">
-                            <Text className="text-blue-700 text-xs font-bold">In Progress</Text>
+
+                          <Text
+                            style={{
+                              fontSize: 17,
+                              fontWeight: "800",
+                              color: hasLessons ? COLORS.eel : "#D0D0D0",
+                              marginTop: 4,
+                            }}
+                          >
+                            {module.title}
+                          </Text>
+                          <Text
+                            style={{
+                              fontSize: 13,
+                              color: hasLessons ? COLORS.hare : "#D0D0D0",
+                              marginTop: 2,
+                              lineHeight: 18,
+                            }}
+                            numberOfLines={2}
+                          >
+                            {module.description}
+                          </Text>
+
+                          {/* Progress bar */}
+                          {hasLessons && (
+                            <View className="mt-3">
+                              <View className="flex-row items-center justify-between mb-1.5">
+                                <Text
+                                  style={{
+                                    color: COLORS.hare,
+                                    fontSize: 11,
+                                    fontWeight: "600",
+                                  }}
+                                >
+                                  {completedCount}/{lessonCount} lessons
+                                </Text>
+                                <Text
+                                  style={{
+                                    color: theme.color.face,
+                                    fontSize: 12,
+                                    fontWeight: "800",
+                                  }}
+                                >
+                                  {Math.round(progress)}%
+                                </Text>
+                              </View>
+                              <View
+                                style={{
+                                  height: 8,
+                                  borderRadius: 4,
+                                  backgroundColor: "#E5E5E5",
+                                }}
+                              >
+                                <View
+                                  style={{
+                                    width: `${Math.max(progress, 0)}%`,
+                                    height: 8,
+                                    borderRadius: 4,
+                                    backgroundColor: isComplete
+                                      ? COLORS.featherGreen.face
+                                      : theme.color.face,
+                                  }}
+                                />
+                              </View>
+                            </View>
+                          )}
+
+                          {!hasLessons && (
+                            <View className="flex-row items-center mt-3">
+                              <Text style={{ fontSize: 14 }}>🔒</Text>
+                              <Text
+                                style={{
+                                  color: "#D0D0D0",
+                                  fontSize: 12,
+                                  fontWeight: "600",
+                                  marginLeft: 6,
+                                }}
+                              >
+                                Coming soon
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+
+                        {/* Arrow */}
+                        {hasLessons && (
+                          <View className="ml-2 mt-2">
+                            <ChevronRight size={20} color="#D0D0D0" />
                           </View>
                         )}
                       </View>
-                      <Text
-                        className={`text-lg font-bold mt-1 ${
-                          hasLessons ? "text-gray-900" : "text-gray-300"
-                        }`}
-                      >
-                        {module.title}
-                      </Text>
-                      <Text
-                        className={`text-sm mt-0.5 ${hasLessons ? "text-gray-500" : "text-gray-300"}`}
-                      >
-                        {module.description}
-                      </Text>
-
-                      {/* Progress */}
-                      {hasLessons && (
-                        <View className="mt-3">
-                          <View className="flex-row items-center justify-between mb-1.5">
-                            <Text className="text-xs text-gray-400 font-medium">
-                              {completedCount}/{lessonCount} lessons
-                            </Text>
-                            <Text className={`text-xs font-bold ${colors.text}`}>
-                              {Math.round(progress)}%
-                            </Text>
-                          </View>
-                          <View className="bg-gray-100 rounded-full h-2">
-                            <View
-                              className={`${isComplete ? "bg-green-500" : colors.bg} rounded-full h-2`}
-                              style={{ width: `${Math.max(progress, 0)}%` }}
-                            />
-                          </View>
-                        </View>
-                      )}
-
-                      {!hasLessons && (
-                        <View className="flex-row items-center mt-3">
-                          <Lock size={14} color="#d1d5db" />
-                          <Text className="text-gray-300 text-sm ml-1.5">Coming soon</Text>
-                        </View>
-                      )}
                     </View>
-
-                    {/* Arrow */}
-                    {hasLessons && (
-                      <View className="ml-2 mt-1">
-                        <ChevronRight size={20} color="#d1d5db" />
-                      </View>
-                    )}
                   </View>
-                </View>
-              </TouchableOpacity>
+                </AnimatedPressable>
+              </Animated.View>
             );
           })}
         </View>

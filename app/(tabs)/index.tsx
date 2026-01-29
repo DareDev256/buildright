@@ -1,57 +1,57 @@
-import { View, Text, ScrollView, TouchableOpacity, ImageBackground } from "react-native";
+import { useEffect } from "react";
+import { View, Text, ScrollView, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import {
-  ChevronRight,
-  BookOpen,
-  Calculator,
-  ClipboardCheck,
-  Flame,
-  Trophy,
-  Star,
-  Lock,
-  CheckCircle2,
-  PlayCircle,
-  Sparkles,
-} from "lucide-react-native";
+import { Lock, ChevronRight } from "lucide-react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
 import { modules } from "../../src/content";
 import { useProgressStore } from "../../src/stores/useProgressStore";
+import AnimatedPressable from "../../src/components/AnimatedPressable";
+import FadeInView from "../../src/components/FadeInView";
+import AnimatedCounter from "../../src/components/AnimatedCounter";
+import { WARM_BG, COLORS, MODULE_THEMES, card3D } from "../../src/theme";
 
-function ProgressRing({ progress, size = 48, strokeWidth = 4 }: { progress: number; size?: number; strokeWidth?: number }) {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (progress / 100) * circumference;
+const heroImage = require("../../assets/hero-home.png");
+
+function AnimatedProgressBar({
+  progress,
+  delay = 0,
+  color = "#FFC800",
+  height = 10,
+}: {
+  progress: number;
+  delay?: number;
+  color?: string;
+  height?: number;
+}) {
+  const width = useSharedValue(0);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      width.value = withTiming(progress, {
+        duration: 800,
+        easing: Easing.out(Easing.cubic),
+      });
+    }, delay);
+    return () => clearTimeout(timeout);
+  }, [progress]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    width: `${width.value}%`,
+  }));
 
   return (
-    <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
-      {/* Background circle */}
-      <View
-        style={{
-          position: "absolute",
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          borderWidth: strokeWidth,
-          borderColor: "#e5e7eb",
-        }}
-      />
-      {/* Progress circle - simplified since SVG isn't available */}
-      <View
-        style={{
-          position: "absolute",
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          borderWidth: strokeWidth,
-          borderColor: progress > 0 ? "#3b82f6" : "#e5e7eb",
-          borderTopColor: progress < 100 ? "transparent" : "#3b82f6",
-          borderRightColor: progress < 50 ? "transparent" : "#3b82f6",
-          borderBottomColor: progress < 75 ? "transparent" : "#3b82f6",
-          transform: [{ rotate: "-45deg" }],
-        }}
-      />
-      <Text className="text-xs font-bold text-gray-700">{Math.round(progress)}%</Text>
-    </View>
+    <Animated.View
+      style={[
+        { backgroundColor: color, borderRadius: height / 2, height },
+        animatedStyle,
+      ]}
+    />
   );
 }
 
@@ -59,303 +59,702 @@ export default function HomeScreen() {
   const router = useRouter();
   const { completedLessons } = useProgressStore();
 
-  // Calculate overall progress
   const totalLessons = modules.reduce((sum, m) => sum + m.lessons.length, 0);
   const completed = Object.values(completedLessons).flat().length;
-  const overallProgress = totalLessons > 0 ? Math.round((completed / totalLessons) * 100) : 0;
+  const overallProgress =
+    totalLessons > 0 ? Math.round((completed / totalLessons) * 100) : 0;
 
-  // Find current module
-  const currentModule = modules.find((m) => {
-    const moduleLessons = completedLessons[m.id] || [];
-    return moduleLessons.length < m.lessons.length;
-  }) || modules[0];
+  const currentModule =
+    modules.find((m) => {
+      const moduleLessons = completedLessons[m.id] || [];
+      return moduleLessons.length < m.lessons.length;
+    }) || modules[0];
 
   const currentModuleProgress = currentModule
     ? Math.round(
-        ((completedLessons[currentModule.id]?.length || 0) / currentModule.lessons.length) * 100
+        ((completedLessons[currentModule.id]?.length || 0) /
+          currentModule.lessons.length) *
+          100
       )
     : 0;
 
-  // Find next lesson
   const completedInModule = completedLessons[currentModule.id] || [];
   const nextLesson = currentModule.lessons.find(
     (l) => !completedInModule.includes(l.id)
   );
 
-  const moduleEmojis: Record<string, string> = {
-    "1": "🏗️",
-    "2": "🏡",
-    "3": "💰",
-    "4": "📐",
-    "5": "📋",
-    "6": "🔨",
-    "7": "🎉",
-  };
-
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View className="px-5 pt-4 pb-2">
-          <View className="flex-row items-center justify-between">
-            <View>
-              <Text className="text-sm text-gray-500 font-medium">Welcome to</Text>
-              <Text className="text-3xl font-extrabold text-gray-900 -mt-1">
-                BuildRight
-              </Text>
-            </View>
-            <View className="flex-row items-center gap-3">
-              <View className="flex-row items-center bg-orange-100 rounded-full px-3 py-1.5">
-                <Flame size={16} color="#f97316" />
-                <Text className="text-orange-600 font-bold text-sm ml-1">
-                  {completed}
+    <SafeAreaView style={{ flex: 1, backgroundColor: WARM_BG }} edges={["top"]}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* ── Header ── */}
+        <FadeInView delay={0} duration={500} direction="down">
+          <View className="px-5 pt-4 pb-3 flex-row items-center justify-between">
+            <View className="flex-row items-center">
+              <Text style={{ fontSize: 34 }}>🏠</Text>
+              <View className="ml-2.5">
+                <Text
+                  style={{ color: COLORS.hare, fontSize: 12, fontWeight: "600" }}
+                >
+                  WELCOME TO
+                </Text>
+                <Text
+                  style={{
+                    color: COLORS.eel,
+                    fontSize: 24,
+                    fontWeight: "800",
+                    marginTop: -2,
+                  }}
+                >
+                  BuildRight
                 </Text>
               </View>
             </View>
-          </View>
-        </View>
-
-        {/* Georgia Badge */}
-        <View className="mx-5 mt-2 mb-4">
-          <View className="bg-red-50 border border-red-100 rounded-2xl px-4 py-3 flex-row items-center">
-            <View className="bg-red-600 rounded-xl w-9 h-9 items-center justify-center mr-3">
-              <Text className="text-white text-xs font-extrabold">GA</Text>
-            </View>
-            <View className="flex-1">
-              <Text className="text-red-900 font-semibold text-sm">Georgia Edition</Text>
-              <Text className="text-red-600 text-xs">Local codes, costs & requirements</Text>
+            {/* Streak badge — 3D */}
+            <View style={card3D(COLORS.tigerOrange.face, COLORS.tigerOrange.bottom, 20)}>
+              <View className="flex-row items-center px-3.5 py-1.5">
+                <Text style={{ fontSize: 20 }}>🔥</Text>
+                <AnimatedCounter
+                  value={completed}
+                  className="text-white font-extrabold text-base ml-1.5"
+                />
+              </View>
             </View>
           </View>
-        </View>
+        </FadeInView>
 
-        {/* Continue Learning Card */}
-        <TouchableOpacity
-          onPress={() => {
-            if (nextLesson) {
-              router.push(`/lesson/${nextLesson.id}` as any);
-            } else {
-              router.push(`/learn/${currentModule.id}` as any);
-            }
-          }}
-          activeOpacity={0.9}
-          className="mx-5 mb-5"
-        >
-          <View className="bg-blue-600 rounded-3xl p-5 overflow-hidden">
-            {/* Decorative circles */}
+        {/* ── Continue Learning Card — 3D blue ── */}
+        <FadeInView delay={100} duration={500} direction="down">
+          <View className="mx-5 mb-5">
             <View
-              className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-blue-500 opacity-50"
-            />
-            <View
-              className="absolute -bottom-8 -left-8 w-24 h-24 rounded-full bg-blue-700 opacity-30"
-            />
+              style={{
+                ...card3D(COLORS.macawBlue.face, COLORS.macawBlue.bottom, 24),
+                overflow: "hidden",
+              }}
+            >
+              <Image
+                source={heroImage}
+                style={{ width: "100%", height: 140 }}
+                resizeMode="cover"
+              />
+              {/* Fade overlay between image and content */}
+              <View
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  top: 115,
+                  height: 30,
+                  backgroundColor: COLORS.macawBlue.face,
+                  opacity: 0.85,
+                }}
+              />
 
-            <View className="flex-row items-start justify-between">
-              <View className="flex-1 mr-4">
-                <View className="flex-row items-center mb-2">
-                  <PlayCircle size={18} color="#93c5fd" />
-                  <Text className="text-blue-200 text-sm font-medium ml-1.5">
-                    Continue Learning
-                  </Text>
-                </View>
-                <Text className="text-white text-xl font-bold mb-1">
+              <View className="px-5 pb-5 -mt-1">
+                <Text
+                  style={{
+                    color: "rgba(255,255,255,0.7)",
+                    fontSize: 11,
+                    fontWeight: "800",
+                    letterSpacing: 1.2,
+                    marginBottom: 4,
+                  }}
+                >
+                  CONTINUE LEARNING
+                </Text>
+                <Text
+                  className="text-white"
+                  style={{ fontSize: 20, fontWeight: "800" }}
+                >
                   {currentModule.title}
                 </Text>
                 {nextLesson && (
-                  <Text className="text-blue-200 text-sm" numberOfLines={1}>
-                    Next: {nextLesson.title}
+                  <Text
+                    style={{
+                      color: "rgba(255,255,255,0.65)",
+                      fontSize: 13,
+                      marginTop: 2,
+                      marginBottom: 12,
+                    }}
+                    numberOfLines={1}
+                  >
+                    Up next: {nextLesson.title}
                   </Text>
                 )}
 
-                {/* Progress bar */}
-                <View className="mt-4 flex-row items-center">
-                  <View className="flex-1 bg-blue-800 rounded-full h-2.5 mr-3">
-                    <View
-                      className="bg-white rounded-full h-2.5"
-                      style={{ width: `${currentModuleProgress}%` }}
+                {/* Progress bar — gold on dark track */}
+                <View className="flex-row items-center mb-4">
+                  <View
+                    style={{
+                      flex: 1,
+                      height: 12,
+                      borderRadius: 6,
+                      backgroundColor: "rgba(0,0,0,0.2)",
+                    }}
+                  >
+                    <AnimatedProgressBar
+                      progress={currentModuleProgress}
+                      delay={600}
+                      color={COLORS.beeYellow.face}
+                      height={12}
                     />
                   </View>
-                  <Text className="text-white text-sm font-bold">
+                  <Text className="text-white font-extrabold text-sm ml-3">
                     {currentModuleProgress}%
                   </Text>
                 </View>
-              </View>
-              <View className="bg-blue-500 rounded-2xl w-14 h-14 items-center justify-center">
-                <Text className="text-2xl">{moduleEmojis[currentModule.id] || "📚"}</Text>
-              </View>
-            </View>
-          </View>
-        </TouchableOpacity>
 
-        {/* Stats Row */}
-        <View className="flex-row mx-5 mb-5 gap-3">
-          <View className="flex-1 bg-white rounded-2xl p-4 border border-gray-100">
-            <View className="flex-row items-center mb-2">
-              <View className="bg-green-100 rounded-xl w-8 h-8 items-center justify-center">
-                <CheckCircle2 size={16} color="#22c55e" />
-              </View>
-            </View>
-            <Text className="text-2xl font-bold text-gray-900">{completed}</Text>
-            <Text className="text-gray-500 text-xs font-medium">Completed</Text>
-          </View>
-          <View className="flex-1 bg-white rounded-2xl p-4 border border-gray-100">
-            <View className="flex-row items-center mb-2">
-              <View className="bg-blue-100 rounded-xl w-8 h-8 items-center justify-center">
-                <BookOpen size={16} color="#3b82f6" />
-              </View>
-            </View>
-            <Text className="text-2xl font-bold text-gray-900">{totalLessons}</Text>
-            <Text className="text-gray-500 text-xs font-medium">Total Lessons</Text>
-          </View>
-          <View className="flex-1 bg-white rounded-2xl p-4 border border-gray-100">
-            <View className="flex-row items-center mb-2">
-              <View className="bg-purple-100 rounded-xl w-8 h-8 items-center justify-center">
-                <Trophy size={16} color="#a855f7" />
-              </View>
-            </View>
-            <Text className="text-2xl font-bold text-gray-900">{overallProgress}%</Text>
-            <Text className="text-gray-500 text-xs font-medium">Progress</Text>
-          </View>
-        </View>
-
-        {/* Quick Tools */}
-        <View className="px-5 mb-4">
-          <Text className="text-lg font-bold text-gray-900 mb-3">Quick Tools</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View className="flex-row gap-3">
-              <TouchableOpacity
-                onPress={() => router.push("/tools/budget-calculator" as any)}
-                className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 w-36"
-                activeOpacity={0.7}
-              >
-                <View className="bg-emerald-100 rounded-xl w-10 h-10 items-center justify-center mb-3">
-                  <Calculator size={20} color="#059669" />
-                </View>
-                <Text className="text-gray-900 font-semibold text-sm">Budget</Text>
-                <Text className="text-gray-500 text-xs">Estimate costs</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => router.push("/tools/permit-checklist" as any)}
-                className="bg-violet-50 border border-violet-100 rounded-2xl p-4 w-36"
-                activeOpacity={0.7}
-              >
-                <View className="bg-violet-100 rounded-xl w-10 h-10 items-center justify-center mb-3">
-                  <ClipboardCheck size={20} color="#7c3aed" />
-                </View>
-                <Text className="text-gray-900 font-semibold text-sm">Permits</Text>
-                <Text className="text-gray-500 text-xs">GA checklist</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => router.push("/tools/timeline-estimator" as any)}
-                className="bg-amber-50 border border-amber-100 rounded-2xl p-4 w-36"
-                activeOpacity={0.7}
-              >
-                <View className="bg-amber-100 rounded-xl w-10 h-10 items-center justify-center mb-3">
-                  <Sparkles size={20} color="#d97706" />
-                </View>
-                <Text className="text-gray-900 font-semibold text-sm">Timeline</Text>
-                <Text className="text-gray-500 text-xs">Plan your build</Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-        </View>
-
-        {/* Learning Path */}
-        <View className="px-5 mb-4">
-          <View className="flex-row items-center justify-between mb-3">
-            <Text className="text-lg font-bold text-gray-900">Your Journey</Text>
-            <TouchableOpacity onPress={() => router.push("/learn" as any)}>
-              <Text className="text-blue-600 font-medium text-sm">See all</Text>
-            </TouchableOpacity>
-          </View>
-          <View className="bg-white rounded-3xl border border-gray-100 overflow-hidden">
-            {modules.map((module, index) => {
-              const moduleLessons = completedLessons[module.id] || [];
-              const isComplete = moduleLessons.length >= module.lessons.length && module.lessons.length > 0;
-              const isInProgress = moduleLessons.length > 0 && !isComplete;
-              const isCurrent = module.id === currentModule.id;
-              const hasLessons = module.lessons.length > 0;
-
-              return (
-                <TouchableOpacity
-                  key={module.id}
-                  onPress={() => hasLessons ? router.push(`/learn/${module.id}` as any) : null}
-                  activeOpacity={hasLessons ? 0.7 : 1}
-                  className={`flex-row items-center px-4 py-3.5 ${
-                    index !== modules.length - 1 ? "border-b border-gray-50" : ""
-                  } ${isCurrent ? "bg-blue-50" : ""}`}
+                {/* Big green CONTINUE button — 3D */}
+                <AnimatedPressable
+                  onPress={() =>
+                    nextLesson
+                      ? router.push(`/lesson/${nextLesson.id}` as any)
+                      : router.push(`/learn/${currentModule.id}` as any)
+                  }
+                  scaleValue={0.95}
                 >
-                  {/* Module number circle */}
                   <View
-                    className={`w-10 h-10 rounded-2xl items-center justify-center mr-3 ${
-                      isComplete
-                        ? "bg-green-500"
-                        : isCurrent
-                        ? "bg-blue-600"
-                        : isInProgress
-                        ? "bg-blue-400"
-                        : "bg-gray-100"
-                    }`}
+                    style={{
+                      ...card3D(
+                        COLORS.featherGreen.face,
+                        COLORS.featherGreen.bottom,
+                        14
+                      ),
+                      paddingVertical: 14,
+                    }}
                   >
-                    {isComplete ? (
-                      <CheckCircle2 size={20} color="white" />
-                    ) : (
-                      <Text
-                        className={`text-base font-bold ${
-                          isCurrent || isInProgress ? "text-white" : "text-gray-400"
-                        }`}
-                      >
-                        {module.id}
-                      </Text>
-                    )}
-                  </View>
-
-                  {/* Module info */}
-                  <View className="flex-1">
                     <Text
-                      className={`font-semibold ${
-                        !hasLessons ? "text-gray-300" : isCurrent ? "text-blue-900" : "text-gray-900"
-                      }`}
+                      style={{
+                        color: "white",
+                        textAlign: "center",
+                        fontWeight: "800",
+                        fontSize: 16,
+                        letterSpacing: 1,
+                      }}
                     >
-                      {module.title}
-                    </Text>
-                    <Text className={`text-xs mt-0.5 ${!hasLessons ? "text-gray-300" : "text-gray-500"}`}>
-                      {module.lessons.length} lessons
-                      {isInProgress && ` · ${moduleLessons.length} done`}
+                      CONTINUE
                     </Text>
                   </View>
-
-                  {/* Status indicator */}
-                  {isCurrent && (
-                    <View className="bg-blue-600 rounded-full px-2.5 py-1">
-                      <Text className="text-white text-xs font-bold">NOW</Text>
-                    </View>
-                  )}
-                  {isComplete && (
-                    <View className="bg-green-100 rounded-full px-2.5 py-1">
-                      <Text className="text-green-700 text-xs font-bold">DONE</Text>
-                    </View>
-                  )}
-                  {!isCurrent && !isComplete && !isInProgress && hasLessons && (
-                    <ChevronRight size={18} color="#d1d5db" />
-                  )}
-                  {!hasLessons && (
-                    <Lock size={16} color="#d1d5db" />
-                  )}
-                </TouchableOpacity>
-              );
-            })}
+                </AnimatedPressable>
+              </View>
+            </View>
           </View>
-        </View>
+        </FadeInView>
 
-        {/* Disclaimer */}
-        <View className="mx-5 mb-8">
-          <View className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
-            <Text className="text-amber-800 text-xs leading-5">
-              ⚠️ Educational content only. Always verify requirements with your local
-              building department and consult qualified professionals.
+        {/* ── Stats Row — vibrant 3D cards ── */}
+        <FadeInView delay={200} duration={400} direction="up">
+          <View className="flex-row mx-5 mb-5" style={{ gap: 10 }}>
+            {/* Done */}
+            <View className="flex-1">
+              <View
+                style={{
+                  ...card3D(COLORS.featherGreen.face, COLORS.featherGreen.bottom),
+                  paddingVertical: 14,
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ fontSize: 28 }}>✅</Text>
+                <AnimatedCounter
+                  value={completed}
+                  className="text-white text-2xl font-extrabold"
+                  style={{ marginTop: 4 }}
+                />
+                <Text
+                  style={{
+                    color: "rgba(255,255,255,0.8)",
+                    fontSize: 11,
+                    fontWeight: "700",
+                    marginTop: 2,
+                  }}
+                >
+                  Done
+                </Text>
+              </View>
+            </View>
+            {/* Lessons */}
+            <View className="flex-1">
+              <View
+                style={{
+                  ...card3D(COLORS.macawBlue.face, COLORS.macawBlue.bottom),
+                  paddingVertical: 14,
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ fontSize: 28 }}>📚</Text>
+                <AnimatedCounter
+                  value={totalLessons}
+                  className="text-white text-2xl font-extrabold"
+                  style={{ marginTop: 4 }}
+                />
+                <Text
+                  style={{
+                    color: "rgba(255,255,255,0.8)",
+                    fontSize: 11,
+                    fontWeight: "700",
+                    marginTop: 2,
+                  }}
+                >
+                  Lessons
+                </Text>
+              </View>
+            </View>
+            {/* Progress */}
+            <View className="flex-1">
+              <View
+                style={{
+                  ...card3D(COLORS.foxPurple.face, COLORS.foxPurple.bottom),
+                  paddingVertical: 14,
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ fontSize: 28 }}>🏆</Text>
+                <AnimatedCounter
+                  value={overallProgress}
+                  suffix="%"
+                  className="text-white text-2xl font-extrabold"
+                  style={{ marginTop: 4 }}
+                />
+                <Text
+                  style={{
+                    color: "rgba(255,255,255,0.8)",
+                    fontSize: 11,
+                    fontWeight: "700",
+                    marginTop: 2,
+                  }}
+                >
+                  Progress
+                </Text>
+              </View>
+            </View>
+          </View>
+        </FadeInView>
+
+        {/* ── Georgia Badge — 3D peach ── */}
+        <FadeInView delay={250} duration={400} direction="up">
+          <View className="mx-5 mb-5">
+            <View
+              style={{
+                ...card3D(COLORS.cardinalRed.face, COLORS.cardinalRed.bottom, 14),
+                flexDirection: "row",
+                alignItems: "center",
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+              }}
+            >
+              <Text style={{ fontSize: 24 }}>🍑</Text>
+              <View className="ml-3 flex-1">
+                <Text style={{ color: "white", fontWeight: "800", fontSize: 14 }}>
+                  Georgia Edition
+                </Text>
+                <Text
+                  style={{
+                    color: "rgba(255,255,255,0.75)",
+                    fontSize: 12,
+                    marginTop: 1,
+                  }}
+                >
+                  Local codes, costs & requirements
+                </Text>
+              </View>
+            </View>
+          </View>
+        </FadeInView>
+
+        {/* ── Quick Tools — 3D colored cards ── */}
+        <FadeInView delay={300} duration={400} direction="up">
+          <View className="mb-5">
+            <View className="px-5 flex-row items-center justify-between mb-3">
+              <Text
+                style={{ fontSize: 18, fontWeight: "800", color: COLORS.eel }}
+              >
+                🧰 Quick Tools
+              </Text>
+              <AnimatedPressable onPress={() => router.push("/tools" as any)}>
+                <Text style={{ color: COLORS.macawBlue.face, fontWeight: "700" }}>
+                  See all
+                </Text>
+              </AnimatedPressable>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
+            >
+              <AnimatedPressable
+                onPress={() =>
+                  router.push("/tools/budget-calculator" as any)
+                }
+              >
+                <View
+                  style={{
+                    ...card3D(COLORS.beeYellow.face, COLORS.beeYellow.bottom, 20),
+                    width: 140,
+                    padding: 16,
+                  }}
+                >
+                  <Text style={{ fontSize: 32, marginBottom: 8 }}>💰</Text>
+                  <Text
+                    style={{ color: "white", fontWeight: "800", fontSize: 15 }}
+                  >
+                    Budget
+                  </Text>
+                  <Text
+                    style={{
+                      color: "rgba(255,255,255,0.8)",
+                      fontWeight: "600",
+                      fontSize: 12,
+                      marginTop: 2,
+                    }}
+                  >
+                    $120–$450/sqft
+                  </Text>
+                </View>
+              </AnimatedPressable>
+
+              <AnimatedPressable
+                onPress={() =>
+                  router.push("/tools/permit-checklist" as any)
+                }
+              >
+                <View
+                  style={{
+                    ...card3D(
+                      COLORS.foxPurple.face,
+                      COLORS.foxPurple.bottom,
+                      20
+                    ),
+                    width: 140,
+                    padding: 16,
+                  }}
+                >
+                  <Text style={{ fontSize: 32, marginBottom: 8 }}>📋</Text>
+                  <Text
+                    style={{ color: "white", fontWeight: "800", fontSize: 15 }}
+                  >
+                    Permits
+                  </Text>
+                  <Text
+                    style={{
+                      color: "rgba(255,255,255,0.8)",
+                      fontWeight: "600",
+                      fontSize: 12,
+                      marginTop: 2,
+                    }}
+                  >
+                    8 GA permits
+                  </Text>
+                </View>
+              </AnimatedPressable>
+
+              <AnimatedPressable
+                onPress={() =>
+                  router.push("/tools/timeline-estimator" as any)
+                }
+              >
+                <View
+                  style={{
+                    ...card3D(
+                      COLORS.tigerOrange.face,
+                      COLORS.tigerOrange.bottom,
+                      20
+                    ),
+                    width: 140,
+                    padding: 16,
+                  }}
+                >
+                  <Text style={{ fontSize: 32, marginBottom: 8 }}>⏱️</Text>
+                  <Text
+                    style={{ color: "white", fontWeight: "800", fontSize: 15 }}
+                  >
+                    Timeline
+                  </Text>
+                  <Text
+                    style={{
+                      color: "rgba(255,255,255,0.8)",
+                      fontWeight: "600",
+                      fontSize: 12,
+                      marginTop: 2,
+                    }}
+                  >
+                    6–14 months
+                  </Text>
+                </View>
+              </AnimatedPressable>
+            </ScrollView>
+          </View>
+        </FadeInView>
+
+        {/* ── Your Journey — module roadmap ── */}
+        <FadeInView delay={400} duration={400} direction="up">
+          <View className="px-5 mb-5">
+            <View className="flex-row items-center justify-between mb-3">
+              <Text
+                style={{ fontSize: 18, fontWeight: "800", color: COLORS.eel }}
+              >
+                🗺️ Your Journey
+              </Text>
+              <AnimatedPressable onPress={() => router.push("/learn" as any)}>
+                <View className="flex-row items-center">
+                  <Text
+                    style={{
+                      color: COLORS.macawBlue.face,
+                      fontWeight: "700",
+                      marginRight: 2,
+                    }}
+                  >
+                    See all
+                  </Text>
+                  <ChevronRight size={16} color={COLORS.macawBlue.face} />
+                </View>
+              </AnimatedPressable>
+            </View>
+
+            {/* Overall progress */}
+            <View
+              style={{
+                ...card3D(COLORS.snow.face, COLORS.snow.bottom, 16),
+                padding: 14,
+                marginBottom: 12,
+              }}
+            >
+              <View className="flex-row items-center justify-between mb-2">
+                <Text style={{ color: COLORS.hare, fontWeight: "700", fontSize: 12 }}>
+                  OVERALL PROGRESS
+                </Text>
+                <Text
+                  style={{
+                    color: COLORS.macawBlue.face,
+                    fontWeight: "800",
+                    fontSize: 14,
+                  }}
+                >
+                  {overallProgress}%
+                </Text>
+              </View>
+              <View
+                style={{
+                  height: 10,
+                  borderRadius: 5,
+                  backgroundColor: "#E5E5E5",
+                }}
+              >
+                <AnimatedProgressBar
+                  progress={overallProgress}
+                  delay={800}
+                  color={COLORS.macawBlue.face}
+                />
+              </View>
+            </View>
+
+            {/* Module rows */}
+            <View
+              style={{
+                ...card3D(COLORS.snow.face, COLORS.snow.bottom, 20),
+                overflow: "hidden",
+              }}
+            >
+              {modules.map((module, index) => {
+                const theme = MODULE_THEMES[module.id] || MODULE_THEMES["1"];
+                const moduleLessons = completedLessons[module.id] || [];
+                const isComplete =
+                  moduleLessons.length >= module.lessons.length &&
+                  module.lessons.length > 0;
+                const isInProgress = moduleLessons.length > 0 && !isComplete;
+                const isCurrent = module.id === currentModule.id;
+                const hasLessons = module.lessons.length > 0;
+                const progress =
+                  module.lessons.length > 0
+                    ? (moduleLessons.length / module.lessons.length) * 100
+                    : 0;
+
+                return (
+                  <AnimatedPressable
+                    key={module.id}
+                    onPress={() =>
+                      hasLessons
+                        ? router.push(`/learn/${module.id}` as any)
+                        : null
+                    }
+                    disabled={!hasLessons}
+                    haptic={hasLessons}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        paddingHorizontal: 14,
+                        paddingVertical: 14,
+                        borderBottomWidth:
+                          index !== modules.length - 1 ? 1 : 0,
+                        borderBottomColor: "#F0EDE8",
+                        backgroundColor: isCurrent
+                          ? `${theme.color.face}10`
+                          : "transparent",
+                      }}
+                    >
+                      {/* Emoji circle */}
+                      <View
+                        style={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: 24,
+                          backgroundColor: isComplete
+                            ? COLORS.featherGreen.face
+                            : hasLessons
+                            ? `${theme.color.face}20`
+                            : "#F0F0F0",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          marginRight: 12,
+                          ...(isComplete
+                            ? {
+                                borderBottomWidth: 3,
+                                borderBottomColor: COLORS.featherGreen.bottom,
+                              }
+                            : {}),
+                        }}
+                      >
+                        {isComplete ? (
+                          <Text style={{ fontSize: 22 }}>⭐</Text>
+                        ) : (
+                          <Text style={{ fontSize: 22, opacity: hasLessons ? 1 : 0.4 }}>
+                            {theme.emoji}
+                          </Text>
+                        )}
+                      </View>
+
+                      {/* Content */}
+                      <View className="flex-1">
+                        <Text
+                          style={{
+                            fontWeight: "700",
+                            fontSize: 15,
+                            color: hasLessons ? COLORS.eel : "#D0D0D0",
+                          }}
+                        >
+                          {module.title}
+                        </Text>
+                        {hasLessons && (
+                          <View className="flex-row items-center mt-1">
+                            <View
+                              style={{
+                                flex: 1,
+                                height: 6,
+                                borderRadius: 3,
+                                backgroundColor: "#E5E5E5",
+                                marginRight: 8,
+                                maxWidth: 120,
+                              }}
+                            >
+                              <View
+                                style={{
+                                  width: `${Math.max(progress, 0)}%`,
+                                  height: 6,
+                                  borderRadius: 3,
+                                  backgroundColor: isComplete
+                                    ? COLORS.featherGreen.face
+                                    : theme.color.face,
+                                }}
+                              />
+                            </View>
+                            <Text
+                              style={{
+                                color: COLORS.hare,
+                                fontSize: 11,
+                                fontWeight: "600",
+                              }}
+                            >
+                              {moduleLessons.length}/{module.lessons.length}
+                            </Text>
+                          </View>
+                        )}
+                        {!hasLessons && (
+                          <Text
+                            style={{
+                              color: "#D0D0D0",
+                              fontSize: 12,
+                              marginTop: 2,
+                            }}
+                          >
+                            Coming soon
+                          </Text>
+                        )}
+                      </View>
+
+                      {/* Status badge */}
+                      {isCurrent && (
+                        <View
+                          style={{
+                            ...card3D(
+                              COLORS.featherGreen.face,
+                              COLORS.featherGreen.bottom,
+                              10
+                            ),
+                            paddingHorizontal: 10,
+                            paddingVertical: 4,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              color: "white",
+                              fontSize: 10,
+                              fontWeight: "800",
+                            }}
+                          >
+                            START
+                          </Text>
+                        </View>
+                      )}
+                      {isComplete && (
+                        <View
+                          style={{
+                            ...card3D(
+                              COLORS.beeYellow.face,
+                              COLORS.beeYellow.bottom,
+                              10
+                            ),
+                            paddingHorizontal: 10,
+                            paddingVertical: 4,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              color: "white",
+                              fontSize: 10,
+                              fontWeight: "800",
+                            }}
+                          >
+                            DONE
+                          </Text>
+                        </View>
+                      )}
+                      {!isCurrent && !isComplete && hasLessons && (
+                        <ChevronRight size={18} color="#D0D0D0" />
+                      )}
+                      {!hasLessons && <Lock size={16} color="#D0D0D0" />}
+                    </View>
+                  </AnimatedPressable>
+                );
+              })}
+            </View>
+          </View>
+        </FadeInView>
+
+        {/* ── Disclaimer ── */}
+        <FadeInView delay={500} duration={400} direction="none">
+          <View className="mx-5 mb-8 mt-2">
+            <Text
+              style={{
+                color: "#C8C8C8",
+                fontSize: 10,
+                textAlign: "center",
+                lineHeight: 14,
+              }}
+            >
+              Educational content only. Always verify requirements with your
+              local building department and consult qualified professionals.
             </Text>
           </View>
-        </View>
+        </FadeInView>
       </ScrollView>
     </SafeAreaView>
   );

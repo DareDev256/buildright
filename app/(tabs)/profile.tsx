@@ -1,96 +1,323 @@
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
-  User,
-  Settings,
   Bell,
+  Settings,
   HelpCircle,
   LogOut,
   ChevronRight,
-  BookOpen,
-  Award,
 } from "lucide-react-native";
+import AnimatedPressable from "../../src/components/AnimatedPressable";
+import FadeInView from "../../src/components/FadeInView";
+import { useProgressStore } from "../../src/stores/useProgressStore";
+import { modules } from "../../src/content";
+import { WARM_BG, COLORS, card3D } from "../../src/theme";
 
 export default function ProfileScreen() {
+  const { completedLessons } = useProgressStore();
+  const totalCompleted = Object.values(completedLessons).flat().length;
+  const modulesFinished = modules.filter((m) => {
+    const done = completedLessons[m.id]?.length || 0;
+    return m.lessons.length > 0 && done >= m.lessons.length;
+  }).length;
+
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <ScrollView className="flex-1 px-4 pt-4">
+    <SafeAreaView style={{ flex: 1, backgroundColor: WARM_BG }}>
+      <ScrollView className="px-5 pt-4">
         {/* Profile Header */}
-        <View className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-          <View className="flex-row items-center">
-            <View className="w-16 h-16 rounded-full bg-primary-100 items-center justify-center">
-              <User size={32} color="#3b82f6" />
+        <FadeInView delay={0} direction="down">
+          <View
+            style={{
+              ...card3D(COLORS.snow.face, COLORS.snow.bottom, 20),
+              padding: 20,
+              marginBottom: 20,
+            }}
+          >
+            <View className="flex-row items-center">
+              <View
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: 32,
+                  backgroundColor: `${COLORS.macawBlue.face}18`,
+                  borderBottomWidth: 3,
+                  borderBottomColor: `${COLORS.macawBlue.face}30`,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text style={{ fontSize: 32 }}>👷</Text>
+              </View>
+              <View className="ml-4 flex-1">
+                <Text
+                  style={{
+                    fontSize: 20,
+                    fontWeight: "800",
+                    color: COLORS.eel,
+                  }}
+                >
+                  Guest Builder
+                </Text>
+                <Text
+                  style={{
+                    color: COLORS.hare,
+                    fontSize: 13,
+                    marginTop: 2,
+                  }}
+                >
+                  Create an account to save progress
+                </Text>
+              </View>
             </View>
-            <View className="ml-4 flex-1">
-              <Text className="text-xl font-bold text-gray-900">Guest User</Text>
-              <Text className="text-gray-500">Create an account to save progress</Text>
-            </View>
+            <AnimatedPressable className="mt-4">
+              <View
+                style={{
+                  ...card3D(
+                    COLORS.featherGreen.face,
+                    COLORS.featherGreen.bottom,
+                    14
+                  ),
+                  paddingVertical: 12,
+                }}
+              >
+                <Text
+                  style={{
+                    color: "white",
+                    fontWeight: "800",
+                    fontSize: 15,
+                    textAlign: "center",
+                  }}
+                >
+                  SIGN UP / LOGIN
+                </Text>
+              </View>
+            </AnimatedPressable>
           </View>
-          <TouchableOpacity className="bg-primary-600 rounded-xl py-3 mt-4">
-            <Text className="text-white font-semibold text-center">Sign Up / Login</Text>
-          </TouchableOpacity>
-        </View>
+        </FadeInView>
 
         {/* Stats */}
-        <View className="flex-row gap-3 mb-6">
-          <View className="flex-1 bg-white rounded-xl border border-gray-200 p-4">
-            <BookOpen size={20} color="#3b82f6" />
-            <Text className="text-2xl font-bold text-gray-900 mt-2">1</Text>
-            <Text className="text-gray-500 text-sm">Lessons Completed</Text>
+        <FadeInView delay={100} direction="up">
+          <View className="flex-row mb-5" style={{ gap: 12 }}>
+            <View className="flex-1">
+              <View
+                style={{
+                  ...card3D(COLORS.macawBlue.face, COLORS.macawBlue.bottom),
+                  paddingVertical: 16,
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ fontSize: 24 }}>📚</Text>
+                <Text
+                  style={{
+                    color: "white",
+                    fontSize: 26,
+                    fontWeight: "800",
+                    marginTop: 4,
+                  }}
+                >
+                  {totalCompleted}
+                </Text>
+                <Text
+                  style={{
+                    color: "rgba(255,255,255,0.8)",
+                    fontSize: 11,
+                    fontWeight: "700",
+                    marginTop: 2,
+                  }}
+                >
+                  Lessons Done
+                </Text>
+              </View>
+            </View>
+            <View className="flex-1">
+              <View
+                style={{
+                  ...card3D(COLORS.beeYellow.face, COLORS.beeYellow.bottom),
+                  paddingVertical: 16,
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ fontSize: 24 }}>🏆</Text>
+                <Text
+                  style={{
+                    color: "white",
+                    fontSize: 26,
+                    fontWeight: "800",
+                    marginTop: 4,
+                  }}
+                >
+                  {modulesFinished}
+                </Text>
+                <Text
+                  style={{
+                    color: "rgba(255,255,255,0.8)",
+                    fontSize: 11,
+                    fontWeight: "700",
+                    marginTop: 2,
+                  }}
+                >
+                  Modules Done
+                </Text>
+              </View>
+            </View>
           </View>
-          <View className="flex-1 bg-white rounded-xl border border-gray-200 p-4">
-            <Award size={20} color="#f59e0b" />
-            <Text className="text-2xl font-bold text-gray-900 mt-2">0</Text>
-            <Text className="text-gray-500 text-sm">Modules Finished</Text>
-          </View>
-        </View>
+        </FadeInView>
 
         {/* Location */}
-        <View className="bg-white rounded-xl border border-gray-200 mb-6">
-          <View className="p-4 flex-row items-center justify-between">
+        <FadeInView delay={200} direction="up">
+          <View
+            style={{
+              ...card3D(COLORS.snow.face, COLORS.snow.bottom, 16),
+              padding: 16,
+              marginBottom: 20,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
             <View>
-              <Text className="text-gray-900 font-medium">Your State</Text>
-              <Text className="text-gray-500 text-sm">Content is tailored to Georgia</Text>
+              <Text
+                style={{ fontSize: 15, fontWeight: "700", color: COLORS.eel }}
+              >
+                Your State
+              </Text>
+              <Text
+                style={{ color: COLORS.hare, fontSize: 12, marginTop: 2 }}
+              >
+                Content tailored to Georgia
+              </Text>
             </View>
-            <View className="bg-red-100 rounded-lg px-3 py-1">
-              <Text className="text-red-700 font-semibold">Georgia</Text>
+            <View
+              style={{
+                ...card3D(
+                  COLORS.cardinalRed.face,
+                  COLORS.cardinalRed.bottom,
+                  10
+                ),
+                paddingHorizontal: 12,
+                paddingVertical: 5,
+              }}
+            >
+              <Text style={{ color: "white", fontWeight: "800", fontSize: 12 }}>
+                🍑 GA
+              </Text>
             </View>
           </View>
-        </View>
+        </FadeInView>
 
         {/* Settings Menu */}
-        <View className="bg-white rounded-xl border border-gray-200 mb-6">
-          {[
-            { icon: Bell, label: "Notifications", subtitle: "Manage alerts" },
-            { icon: Settings, label: "Settings", subtitle: "App preferences" },
-            { icon: HelpCircle, label: "Help & Support", subtitle: "FAQs and contact" },
-          ].map((item, index) => (
-            <TouchableOpacity
-              key={item.label}
-              className={`flex-row items-center p-4 ${
-                index !== 2 ? "border-b border-gray-100" : ""
-              }`}
-            >
-              <View className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center mr-3">
-                <item.icon size={20} color="#6b7280" />
-              </View>
-              <View className="flex-1">
-                <Text className="text-gray-900 font-medium">{item.label}</Text>
-                <Text className="text-gray-500 text-sm">{item.subtitle}</Text>
-              </View>
-              <ChevronRight size={20} color="#9ca3af" />
-            </TouchableOpacity>
-          ))}
-        </View>
+        <FadeInView delay={300} direction="up">
+          <View
+            style={{
+              ...card3D(COLORS.snow.face, COLORS.snow.bottom, 16),
+              overflow: "hidden",
+              marginBottom: 20,
+            }}
+          >
+            {[
+              {
+                icon: Bell,
+                label: "Notifications",
+                subtitle: "Manage alerts",
+                emoji: "🔔",
+              },
+              {
+                icon: Settings,
+                label: "Settings",
+                subtitle: "App preferences",
+                emoji: "⚙️",
+              },
+              {
+                icon: HelpCircle,
+                label: "Help & Support",
+                subtitle: "FAQs and contact",
+                emoji: "❓",
+              },
+            ].map((item, index) => (
+              <AnimatedPressable key={item.label}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    padding: 14,
+                    borderBottomWidth: index !== 2 ? 1 : 0,
+                    borderBottomColor: "#F0EDE8",
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 12,
+                      backgroundColor: "#F5F3EE",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginRight: 12,
+                    }}
+                  >
+                    <Text style={{ fontSize: 18 }}>{item.emoji}</Text>
+                  </View>
+                  <View className="flex-1">
+                    <Text
+                      style={{
+                        fontWeight: "700",
+                        fontSize: 15,
+                        color: COLORS.eel,
+                      }}
+                    >
+                      {item.label}
+                    </Text>
+                    <Text
+                      style={{
+                        color: COLORS.hare,
+                        fontSize: 12,
+                        marginTop: 1,
+                      }}
+                    >
+                      {item.subtitle}
+                    </Text>
+                  </View>
+                  <ChevronRight size={18} color="#D0D0D0" />
+                </View>
+              </AnimatedPressable>
+            ))}
+          </View>
+        </FadeInView>
 
-        {/* Sign Out (for logged in users) */}
-        <TouchableOpacity className="flex-row items-center justify-center py-4 mb-8">
-          <LogOut size={18} color="#ef4444" />
-          <Text className="text-red-500 font-medium ml-2">Sign Out</Text>
-        </TouchableOpacity>
+        {/* Sign Out */}
+        <AnimatedPressable className="mb-4">
+          <View
+            style={{
+              ...card3D("#FFF0F0", "#F5D0D0", 14),
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              paddingVertical: 12,
+            }}
+          >
+            <LogOut size={16} color={COLORS.cardinalRed.face} />
+            <Text
+              style={{
+                color: COLORS.cardinalRed.face,
+                fontWeight: "700",
+                marginLeft: 8,
+              }}
+            >
+              Sign Out
+            </Text>
+          </View>
+        </AnimatedPressable>
 
         {/* Version */}
-        <Text className="text-center text-gray-400 text-sm mb-8">
+        <Text
+          style={{
+            textAlign: "center",
+            color: "#C8C8C8",
+            fontSize: 12,
+            marginBottom: 24,
+            marginTop: 8,
+          }}
+        >
           BuildRight v1.0.0
         </Text>
       </ScrollView>

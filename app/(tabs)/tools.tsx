@@ -1,65 +1,51 @@
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import {
-  Calculator,
-  Clock,
-  ClipboardCheck,
-  FileText,
-  HelpCircle,
-  ChevronRight,
-} from "lucide-react-native";
+import { ChevronRight } from "lucide-react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
+import AnimatedPressable from "../../src/components/AnimatedPressable";
+import { WARM_BG, COLORS, card3D } from "../../src/theme";
 
 const tools = [
   {
     id: "budget-calculator",
     title: "Budget Calculator",
-    description: "Estimate your total construction cost based on size, finish level, and Georgia county",
-    icon: Calculator,
-    color: "#059669",
-    bgColor: "bg-emerald-50",
-    iconBg: "bg-emerald-100",
-    borderColor: "border-emerald-100",
+    hook: "Estimate construction costs",
+    preview: "$120–$450/sq ft",
+    emoji: "💰",
+    color: COLORS.beeYellow,
   },
   {
     id: "timeline-estimator",
     title: "Timeline Estimator",
-    description: "Plan your build timeline with phase-by-phase breakdown and seasonal considerations",
-    icon: Clock,
-    color: "#d97706",
-    bgColor: "bg-amber-50",
-    iconBg: "bg-amber-100",
-    borderColor: "border-amber-100",
+    hook: "Plan your build phases",
+    preview: "6–14 months typical",
+    emoji: "⏱️",
+    color: COLORS.tigerOrange,
   },
   {
     id: "permit-checklist",
     title: "Permit Checklist",
-    description: "Track required permits, inspections, and approvals for your Georgia county",
-    icon: ClipboardCheck,
-    color: "#7c3aed",
-    bgColor: "bg-violet-50",
-    iconBg: "bg-violet-100",
-    borderColor: "border-violet-100",
+    hook: "Track GA permits & inspections",
+    preview: "8 permits needed",
+    emoji: "📋",
+    color: COLORS.foxPurple,
   },
   {
     id: "document-tracker",
     title: "Document Tracker",
-    description: "Organize and track all documents needed for your construction loan",
-    icon: FileText,
-    color: "#2563eb",
-    bgColor: "bg-blue-50",
-    iconBg: "bg-blue-100",
-    borderColor: "border-blue-100",
+    hook: "Organize loan documents",
+    preview: "0/12 tracked",
+    emoji: "📁",
+    color: COLORS.macawBlue,
   },
   {
     id: "funding-quiz",
     title: "Funding Readiness",
-    description: "Assess your financial readiness with a 10-question evaluation and personalized score",
-    icon: HelpCircle,
-    color: "#db2777",
-    bgColor: "bg-pink-50",
-    iconBg: "bg-pink-100",
-    borderColor: "border-pink-100",
+    hook: "Assess financial readiness",
+    preview: "10 questions",
+    emoji: "🧠",
+    color: COLORS.cardinalRed,
   },
 ];
 
@@ -67,65 +53,148 @@ export default function ToolsScreen() {
   const router = useRouter();
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: WARM_BG }}>
+      <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View className="px-5 pt-4 pb-2">
-          <Text className="text-3xl font-extrabold text-gray-900">Tools</Text>
-          <Text className="text-gray-500 mt-1">
-            Interactive calculators and checklists
+          <Text style={{ fontSize: 30, fontWeight: "800", color: COLORS.eel }}>
+            🧰 Tools
+          </Text>
+          <Text
+            style={{
+              color: COLORS.hare,
+              fontSize: 14,
+              fontWeight: "600",
+              marginTop: 4,
+            }}
+          >
+            Interactive calculators & checklists
           </Text>
         </View>
 
-        {/* Georgia Banner */}
+        {/* Georgia Banner — 3D */}
         <View className="mx-5 mt-2 mb-5">
-          <View className="bg-red-50 border border-red-100 rounded-2xl px-4 py-3 flex-row items-center">
-            <View className="bg-red-600 rounded-xl w-9 h-9 items-center justify-center mr-3">
-              <Text className="text-white text-xs font-extrabold">GA</Text>
-            </View>
-            <Text className="text-red-800 flex-1 text-sm font-medium">
+          <View
+            style={{
+              ...card3D(COLORS.cardinalRed.face, COLORS.cardinalRed.bottom, 14),
+              flexDirection: "row",
+              alignItems: "center",
+              paddingHorizontal: 14,
+              paddingVertical: 10,
+            }}
+          >
+            <Text style={{ fontSize: 22, marginRight: 10 }}>🍑</Text>
+            <Text
+              style={{
+                color: "white",
+                fontWeight: "700",
+                fontSize: 13,
+                flex: 1,
+              }}
+            >
               All tools calibrated for Georgia building
             </Text>
           </View>
         </View>
 
         {/* Tool Cards */}
-        <View className="px-5 gap-4 mb-8">
-          {tools.map((tool) => {
-            const Icon = tool.icon;
-            return (
-              <TouchableOpacity
-                key={tool.id}
+        <View className="px-5 mb-8" style={{ gap: 14 }}>
+          {tools.map((tool, index) => (
+            <Animated.View
+              key={tool.id}
+              entering={FadeInDown.delay(index * 80)
+                .duration(400)
+                .springify()
+                .damping(16)}
+            >
+              <AnimatedPressable
                 onPress={() => router.push(`/tools/${tool.id}` as any)}
-                activeOpacity={0.8}
-                className={`bg-white rounded-3xl border ${tool.borderColor} overflow-hidden`}
               >
-                <View className="p-5">
-                  <View className="flex-row items-start">
-                    {/* Icon */}
-                    <View className={`w-14 h-14 rounded-2xl items-center justify-center mr-4 ${tool.iconBg}`}>
-                      <Icon size={24} color={tool.color} />
+                <View
+                  style={{
+                    ...card3D(COLORS.snow.face, COLORS.snow.bottom, 20),
+                    overflow: "hidden",
+                  }}
+                >
+                  {/* Colored accent bar */}
+                  <View
+                    style={{
+                      height: 4,
+                      backgroundColor: tool.color.face,
+                    }}
+                  />
+                  <View
+                    style={{
+                      padding: 16,
+                      flexDirection: "row",
+                      alignItems: "center",
+                    }}
+                  >
+                    {/* Emoji circle */}
+                    <View
+                      style={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: 28,
+                        backgroundColor: `${tool.color.face}18`,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        marginRight: 14,
+                        borderBottomWidth: 3,
+                        borderBottomColor: `${tool.color.face}30`,
+                      }}
+                    >
+                      <Text style={{ fontSize: 26 }}>{tool.emoji}</Text>
                     </View>
 
                     {/* Content */}
-                    <View className="flex-1">
-                      <Text className="text-lg font-bold text-gray-900">
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontWeight: "800",
+                          color: COLORS.eel,
+                        }}
+                      >
                         {tool.title}
                       </Text>
-                      <Text className="text-sm text-gray-500 mt-1 leading-5">
-                        {tool.description}
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          color: COLORS.hare,
+                          marginTop: 2,
+                        }}
+                      >
+                        {tool.hook}
                       </Text>
+                      {/* Preview badge */}
+                      <View
+                        style={{
+                          ...card3D(tool.color.face, tool.color.bottom, 8),
+                          alignSelf: "flex-start",
+                          paddingHorizontal: 10,
+                          paddingVertical: 3,
+                          marginTop: 6,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            fontSize: 11,
+                            fontWeight: "800",
+                          }}
+                        >
+                          {tool.preview}
+                        </Text>
+                      </View>
                     </View>
 
-                    {/* Arrow */}
-                    <View className="ml-2 mt-1">
-                      <ChevronRight size={20} color="#d1d5db" />
-                    </View>
+                    <ChevronRight size={20} color="#D0D0D0" />
                   </View>
                 </View>
-              </TouchableOpacity>
-            );
-          })}
+              </AnimatedPressable>
+            </Animated.View>
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>
